@@ -1,33 +1,16 @@
 mod power_automate;
 
-use crate::power_automate::{PowerAutomate, ServerCommand};
+use std::time::Duration;
+
+use crate::power_automate::PowerAutomate;
 use anyhow::Result;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let pa = PowerAutomate::new();
-    let resp = pa
-        .execute(&ServerCommand::CancelBox {
-            title: "Cancel Box",
-            message: "",
-            time_s: 2,
-        })
-        .await?;
+    let resp = pa.cancel_box("title", "this is a cancel box", Duration::from_secs(5)).await?;
     println!("{resp:?}");
-    let resp = pa
-        .execute(&ServerCommand::MessageBox {
-            title: "title",
-            message: "message",
-        })
-        .await?;
-    println!("{resp:?}");
-    let resp = pa
-        .execute(&ServerCommand::CancelBox {
-            title: "Cancel Box the second",
-            message: "",
-            time_s: 2,
-        })
-        .await?;
+    let resp = pa.message_box("Title", "this is a message box").await?;
     println!("{resp:?}");
     Ok(())
 }
