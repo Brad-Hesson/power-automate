@@ -1,3 +1,4 @@
+use anyhow::{anyhow, bail, Context, Result};
 use axum::{
     routing::{get, post},
     Router,
@@ -13,10 +14,9 @@ use tokio::{
     },
     task::JoinHandle,
 };
-use anyhow::{Result, bail, anyhow};
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
     let pa = PowerAutomate::new();
     let resp = pa
         .execute(&ServerCommand::CancelBox {
@@ -24,14 +24,14 @@ async fn main() {
             message: "",
             time_s: 2,
         })
-        .await;
+        .await?;
     println!("{resp:?}");
     let resp = pa
         .execute(&ServerCommand::MessageBox {
             title: "title",
             message: "message",
         })
-        .await;
+        .await?;
     println!("{resp:?}");
     let resp = pa
         .execute(&ServerCommand::CancelBox {
@@ -39,8 +39,9 @@ async fn main() {
             message: "",
             time_s: 2,
         })
-        .await;
+        .await?;
     println!("{resp:?}");
+    Ok(())
 }
 
 type ChannelData = (String, oneshot::Sender<String>);
@@ -99,10 +100,7 @@ impl PowerAutomate {
             channel_send,
         }
     }
-    pub async fn execute<'a>(
-        &self,
-        command: &ServerCommand<'a>,
-    ) -> Result<ServerResponse> {
+    pub async fn execute<'a>(&self, command: &ServerCommand<'a>) -> Result<ServerResponse> {
         let command_str = serde_json::to_string(command).unwrap();
         let (send, recv) = oneshot::channel();
         self.channel_send.send((command_str, send)).await.unwrap();
@@ -112,10 +110,9 @@ impl PowerAutomate {
             .replace("\r\n", "\\n")
             .replace("False", "false")
             .replace("True", "true");
-        if let Ok(err) = serde_json::from_str::<ServerError>(&patched) {
-            bail!(anyhow!(err.server_error))
-        }
-        Ok(serde_json::from_str(&patched).unwrap())
+        serde_json::from_str::<Result<_, ServerError>>(&patched)
+            .unwrap()
+            .context("Power automate returned an error")
     }
 }
 
@@ -138,7 +135,6 @@ enum ServerResponse {
     MessageBox,
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-struct ServerError {
-    server_error: String,
-}
+#[derive(Debug, serde::Deserialize, serde::Serialize, thiserror::Error)]
+#[error("{0}")]
+struct ServerError(String);
