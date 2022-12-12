@@ -167,7 +167,9 @@ impl AquisitionDriver {
     pub async fn save_dat(&self, path: impl AsRef<Path>) -> Result<()> {
         let fname = path.as_ref().file_name().unwrap().to_str().unwrap();
         let folder = path.as_ref().parent().unwrap().to_str().unwrap();
-        self.pa.nanonis_open_history().await?;
+        if !self.pa.is_window_open("History", "").await? {
+            self.pa.nanonis_open_history().await?;
+        }
         self.pa.nanonis_save_history(folder, fname).await?;
         Ok(())
     }

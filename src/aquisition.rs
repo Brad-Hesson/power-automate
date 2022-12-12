@@ -62,9 +62,9 @@ impl Aquisition {
         let last_current = self.current.last().unwrap();
         let last_voltage = self.voltage.last().unwrap();
         let mut ind_sets = vec![];
-        ind_sets.push(dbg!(inds(&other.probe, last_probe)));
-        ind_sets.push(dbg!(inds(&other.current, last_current)));
-        ind_sets.push(dbg!(inds(&other.voltage, last_voltage)));
+        ind_sets.push(inds(&other.probe, last_probe));
+        ind_sets.push(inds(&other.current, last_current));
+        ind_sets.push(inds(&other.voltage, last_voltage));
         ind_sets.sort_by_key(|v| v.len());
         let ind = if ind_sets[0].len() == 1 {
             ind_sets[0][0]
