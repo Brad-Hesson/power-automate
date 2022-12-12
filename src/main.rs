@@ -13,12 +13,12 @@ async fn main() -> Result<()> {
 
     let folder =
         PathBuf::from(r#"C:\Users\Brad\Desktop\actuator-project\data\ln-stack\0014\aquisitions"#);
-    let num_samples = 10;
+    let num_samples = 20;
     let pkpk = 400.;
     let offset = 0.;
 
     let hyst_periods = [0.25, 1., 5., 20.];
-    let ramp_times = [1., 0.1];
+    let ramp_times = [0.1, 1., 5.];
     let ramp_rest_time = 30.;
 
     let mut settings = WavegenSettings::default();
