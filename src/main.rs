@@ -1,25 +1,24 @@
-mod aquisition;
 mod power_automate;
 
 use std::{io::BufWriter, path::PathBuf, time::Duration};
 
 use anyhow::Result;
-use aquisition::WavegenSettings;
-use power_automate::AquisitionDriver;
+use power_automate::{AquisitionDriver, WavegenSettings};
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let mut aqd = AquisitionDriver::new().await?;
 
-    let folder =
-        PathBuf::from(r#"C:\Users\Brad\Desktop\actuator-project\data\ln-stack\0014\aquisitions"#);
-    let num_samples = 20;
-    let pkpk = 400.;
-    let offset = 0.;
+    let folder = PathBuf::from(r#"C:\Users\Brad\Desktop\code\actuator-project\data\pzt-tile\0002"#);
+    let num_samples = 2;
+    let pkpk = 200.;
+    let offset = 200.;
 
-    let hyst_periods = [0.25, 1., 5., 20.];
-    let ramp_times = [0.1, 1., 5.];
-    let ramp_rest_time = 30.;
+    let hyst_periods = [];
+    // let hyst_periods = [0.25, 1., 5., 20.];
+    let ramp_times = [0.5];
+    // let ramp_times = [0.1, 1., 5.];
+    let ramp_rest_time = 120.;
 
     let mut settings = WavegenSettings::default();
 
@@ -37,7 +36,7 @@ async fn main() -> Result<()> {
         println!("Running {}", filename(settings));
         let aq = aqd.aquire_n_waves(settings, num_samples).await?;
         let writer = BufWriter::new(std::fs::File::create(file_path)?);
-        aq.write_to_writer(writer)?;
+        aq.write_to(writer)?;
     }
 
     // Ramp
@@ -55,7 +54,7 @@ async fn main() -> Result<()> {
         println!("Running {}", filename(settings));
         let aq = aqd.aquire_n_waves(settings, num_samples).await?;
         let writer = BufWriter::new(std::fs::File::create(file_path)?);
-        aq.write_to_writer(writer)?;
+        aq.write_to(writer)?;
     }
 
     aqd.stop_wavegen().await?;
